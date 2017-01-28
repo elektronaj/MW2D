@@ -1,0 +1,15 @@
+candidates               # switch to generating candidates
+gauss 1 0 0.5 125        # generate 125 points with sigma=0.5, 
+                         # centered at (1,0)
+uniform -2 -2 1 1 50     # generate 50 points distributed uniformly
+                         # on the square (-2,-2)(1,1)
+voters                   # switch to generating voters
+circle 0 0 2 400         # generate 400 points distributed uniformly
+                         # on a disc centered at (0,0) with radius 2
+generate input-data      # save the generated points to file input-data.in
+                         # generate preference-based election and save
+                         # it to file input-data.out
+stv  20 input-a-stv      # compute the election result for 20 winners using 
+                         # STV and save the result to input-a-stv.{win,png}
+stv  40 input-b-stv      # compute the election result for 40 winners using 
+                         # STV and save the result to input-b-stv.{win,png}
