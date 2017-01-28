@@ -25,7 +25,7 @@ def debug(s):
 
 try:
   import numpy as np
-  import ilp1
+  import ilp
 except:
   debug( "No numeric libraries! Do not use ILP" )
 
