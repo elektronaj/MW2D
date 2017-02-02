@@ -413,7 +413,7 @@ def ccILP( V, k ):
   print >>sys.stderr, "in ccILP for real"
   # call ILP..
   print >>sys.stderr, "CPLEX START"
-  (total_satisfaction, winning_committee) = ilp1.run_ilp(np.array(V), k, np.arange(m - 1, -1, -1))
+  (total_satisfaction, winning_committee) = ilp.run_ilp(np.array(V), k, np.arange(m - 1, -1, -1))
   print >>sys.stderr, "winning_committee"
   print >>sys.stderr, winning_committee
   debug('well')
@@ -433,7 +433,7 @@ def PAV( V, k ):
   print >>sys.stderr, "in PAV for real"
   # call ILP..
   print >>sys.stderr, "CPLEX START"
-  (total_satisfaction, winning_committee) = ilp1.run_ilp_pav(np.array(V), k, np.arange(m - 1, -1, -1))
+  (total_satisfaction, winning_committee) = ilp.run_ilp_pav(np.array(V), k, np.arange(m - 1, -1, -1))
   print >>sys.stderr, "winning_committee"
   print >>sys.stderr, winning_committee
   debug('well')
@@ -458,7 +458,7 @@ def PAVtopk( V, k ):
   print >>sys.stderr, "in PAV for real"
   # call ILP..
   print >>sys.stderr, "CPLEX START"
-  (total_satisfaction, winning_committee) = ilp1.run_ilp_pavtopk(np.array(V), k, np.arange(m - 1, -1, -1))
+  (total_satisfaction, winning_committee) = ilp.run_ilp_pavtopk(np.array(V), k, np.arange(m - 1, -1, -1))
   print >>sys.stderr, "winning_committee"
   print >>sys.stderr, winning_committee
   debug('well')
@@ -477,7 +477,7 @@ def monroeILP( V, k ):
   n = len( V )
 
   print >>sys.stderr, "CPLEX START: computing Monroe with ILP"
-  (total_satisfaction, winning_committee) = ilp1.run_ilp_monroe(np.array(V), k, np.arange(m - 1, -1, -1))
+  (total_satisfaction, winning_committee) = ilp.run_ilp_monroe(np.array(V), k, np.arange(m - 1, -1, -1))
   print >>sys.stderr, "CPLEX END: Monroe ILP winning_committee"
   print >>sys.stderr, winning_committee
   
