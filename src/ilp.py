@@ -1,16 +1,10 @@
-'''
-Python Multiwinner Package
-
-Using ILP (CPLEX) to solve winner determination for some multiwinner voting rules.
-'''
-
-
 import numpy as np
 from itertools import combinations
 import numbers
 import signal
 from argparse import ArgumentParser
 import sys
+sys.path.append('/afs/akt.tu-berlin.de/service/cplex/cplex/python/x86-64_sles10_4.1')
 import cplex
 from cplex.exceptions import CplexError
 import math
@@ -23,10 +17,9 @@ import os
 
 
 def create_election(n,m,rep=False,seed=None):
-    ''' 
-    n: number of voters
-    m: number of candidates (alternatives)
-    each row is a vote (ranked candidates in total order)
+    ''' n: number of voters
+        m: number of candidates (alternatives)
+        each row is a vote (ranked candidates in total order)
     '''
     assert type(m) in [list,int], "expected list of candidates or int"
     
@@ -57,9 +50,8 @@ def create_election(n,m,rep=False,seed=None):
 
 
 def brute_force_CC(election,k,scoring=None):
-    ''' 
-    Checks all n choose k committees and choose the best one,
-    acording to the represantive value
+    ''' check all n choose k committees and choose the best one,
+        acording to the represantive value
     '''
     n,m = election.shape
     candidates = np.sort(election[0,:])
@@ -88,11 +80,10 @@ def brute_force_CC(election,k,scoring=None):
                 
     return best_score, best_committee
 
-
 def k_borda(election,k,scoring=None):
     ''' 
-    Currently ignoring the order if scoring doesn't break ties,
-    see scoring with all ones.
+        currently ignoring the order if scoring doesn't break ties,
+        see scoring with all ones
     '''
     n,m = election.shape
     if scoring is not None:
@@ -108,15 +99,13 @@ def k_borda(election,k,scoring=None):
 
     return candidates[np.argsort(candidate_score)[::-1]][:k]
 
-
 def distance(vote,candidate):
     return np.argmax(vote == candidate)
 
-
 def clustering(election,k,committee=None,scoring=None,iterations=30,restart=True,fill_greedy=False,init_alpha=False,alpha=1):
     ''' 
-    Currently ignoring the order if scoring doesn't break ties,
-    see scoring with all ones.
+        currently ignoring the order if scoring doesn't break ties,
+        see scoring with all ones
     '''
     n,m = election.shape
     if scoring is not None:
@@ -202,7 +191,6 @@ def add_to_pq(pq,element,threshold,size):
         heapq.heappop(pq)
     return pq[0][0]
 
-
 def score_committee(election,committee,scoring=None):
     n,m = election.shape
 
@@ -220,7 +208,6 @@ def score_committee(election,committee,scoring=None):
 
     return np.sum(scoring[res])
 
-
 def get_clusters(fd,n,k):
     in_cluster = defaultdict(list)
 
@@ -235,7 +222,6 @@ def get_clusters(fd,n,k):
             in_cluster['left_over'].append(i)
 
     return in_cluster
-    
 
 def clustering_monroe(election,k,committee=None,committee_score=0,scoring=None,iterations=30, restart=False):
     n,m = election.shape
@@ -277,7 +263,12 @@ def clustering_monroe(election,k,committee=None,committee_score=0,scoring=None,i
     
     ''' first n nodes are the voters, next m nodes are the candidates last to are s,t '''
             
+    # lieber inverse (1./) statt scoring umdrehen? geht global
+    
     last_committee = None
+    
+#    best_committee = None
+#    best_score = 0
     
     iterations_since_convergence = 0
     
@@ -301,6 +292,7 @@ def clustering_monroe(election,k,committee=None,committee_score=0,scoring=None,i
                 return committee, score_, iterations_since_convergence
         
         last_committee = np.copy(committee)
+        
         
         G = nx.DiGraph()
         for v in range(n):
@@ -370,7 +362,6 @@ def clustering_monroe(election,k,committee=None,committee_score=0,scoring=None,i
         
     return (best_committee,best_score,0) if best_committee is not None else (committee,score_,iterations_since_convergence)        
 
-
 def write_cplex_format(election,k,out,scoring=None):
     n,m = election.shape
     
@@ -439,7 +430,6 @@ def write_cplex_format(election,k,out,scoring=None):
         
     f.write("End\n")
 
-
 def write_cplex_format_pav(election,k,out,scoring=None):
     n,m = election.shape
     
@@ -473,7 +463,7 @@ def write_cplex_format_pav(election,k,out,scoring=None):
     f.write(s+"\n")
     f.write("Subject To\n")
 
-    # constraint for x's
+# constraint for x's
     subj_k = "c1:"
     first = True
     for c in candidates:
@@ -484,7 +474,7 @@ def write_cplex_format_pav(election,k,out,scoring=None):
         
     f.write(subj_k+' = ' + str(k) + '\n')
 
-    # constraints for y's    
+# constraints for y's    
     pos = 0
     yli = ""
     for z in range(k):
@@ -525,7 +515,6 @@ def write_cplex_format_pav(election,k,out,scoring=None):
             f.write("x"+str(i) +"\n")
         
     f.write("End\n")
-    
 
 def write_cplex_format_pavtopk(election,k,out,scoring=None):
     n,m = election.shape
@@ -560,7 +549,7 @@ def write_cplex_format_pavtopk(election,k,out,scoring=None):
     f.write(s+"\n")
     f.write("Subject To\n")
 
-    # constraint for x's
+# constraint for x's
     subj_k = "c1:"
     first = True
     for c in candidates:
@@ -571,7 +560,7 @@ def write_cplex_format_pavtopk(election,k,out,scoring=None):
         
     f.write(subj_k+' = ' + str(k) + '\n')
 
-    # constraints for y's    
+# constraints for y's    
     pos = 0
     yli = ""
     for z in range(k):
@@ -613,12 +602,11 @@ def write_cplex_format_pavtopk(election,k,out,scoring=None):
         
     f.write("End\n")
 
-
 def write_cplex_format_monroe(election,k,out,scoring=None):
     n,m = election.shape
     scoring = scoring if scoring is not None else range(m-1,-1,-1)
 
-    # scoring = np.max(scoring) - scoring
+    #scoring = np.max(scoring) - scoring
     
     candidates = np.sort(election[0,:])
     
@@ -634,7 +622,9 @@ def write_cplex_format_monroe(election,k,out,scoring=None):
     obj = 'Maximize\nobj: '
     
     var = 'Binary\n'
-        
+    
+
+    
     obj_list = []
     c2 = ''
     c6 = ''    
@@ -688,6 +678,7 @@ def write_cplex_format_monroe(election,k,out,scoring=None):
     
     
 def run_ilp(election,k,scoring=None):
+    
     n,m = election.shape
     
     candidates = np.sort(election[0,:])
@@ -711,11 +702,11 @@ def run_ilp(election,k,scoring=None):
 
     x = np.array(cpx.solution.get_values()[-m:])
     
-    # return cpx.solution.get_objective_value(), candidates[x == 1.0]
+#    return cpx.solution.get_objective_value(), candidates[x == 1.0]
     return cpx.solution.get_objective_value(), candidates[np.logical_and(x > 0.9, x < 1.1)]
 
-
 def run_ilp_pav(election,k,scoring=None):
+    
     n,m = election.shape
     
     candidates = np.sort(election[0,:])
@@ -740,11 +731,11 @@ def run_ilp_pav(election,k,scoring=None):
 
     x = np.array(cpx.solution.get_values()[-m:])
     
-    # return cpx.solution.get_objective_value(), candidates[x == 1.0]
+#    return cpx.solution.get_objective_value(), candidates[x == 1.0]
     return cpx.solution.get_objective_value(), candidates[np.logical_and(x > 0.9, x < 1.1)]
 
-
 def run_ilp_pavtopk(election,k,scoring=None):
+    
     n,m = election.shape
     
     candidates = np.sort(election[0,:])
@@ -769,11 +760,11 @@ def run_ilp_pavtopk(election,k,scoring=None):
 
     x = np.array(cpx.solution.get_values()[-m:])
     
-    # Returns cpx.solution.get_objective_value(), candidates[x == 1.0]
+#    return cpx.solution.get_objective_value(), candidates[x == 1.0]
     return cpx.solution.get_objective_value(), candidates[np.logical_and(x > 0.9, x < 1.1)]
 
-
 def run_ilp_monroe(election,k,scoring=None):
+    
     n,m = election.shape
     
     candidates = np.sort(election[0,:])
@@ -797,9 +788,8 @@ def run_ilp_monroe(election,k,scoring=None):
 
     x = np.array(cpx.solution.get_values()[-m:])
     
-    # Returns cpx.solution.get_objective_value(), candidates[x == 1.0]
+#    return cpx.solution.get_objective_value(), candidates[x == 1.0]
     return cpx.solution.get_objective_value(), candidates[np.logical_and(x > 0.9, x < 1.1)]
-
 
 def run_greedyCC_noc(election,k,d,p=0.75,e=1.0,scoring=None):
     best, committees = greedyCC_d_p(election,k,d,p=p,e=e,scoring=scoring)                                                                                            
@@ -814,7 +804,6 @@ def run_greedy_monroe_noc(election,k,d,p=0.75,e=1.0,scoring=None):
     _,bs,_ = run_clustering_monroe(election,k,committees,scores_,scoring=scoring)
 
     return score,bs
-
 
 def super_geil_algorithm_no_clustering(election,k,p=0.0,n_jobs=-1,scoring=None):    
     best_committee = None
@@ -842,17 +831,19 @@ def super_geil_algorithm_no_clustering(election,k,p=0.0,n_jobs=-1,scoring=None):
 
         res += Parallel(n_jobs=n_jobs)(delayed(run_greedyCC_noc)(election,k,d,scoring=scoring) for _ in range(5))
 
+
     for (s,cs) in res:
         scores.append(cs)
         if s > best_score_nc:
             best_score_nc = s
 
     scores = np.array(scores)
+    #order = np.argsort(scores)[::-1]
 
+    #bs,bc,ba = results[order[0]]
     bs = np.max(scores)
     same = np.sum(scores == bs)
     return greedy_scores,greedy_scores_cl,bs,same,best_score_nc
-
 
 def super_geil_algorithm_no_clustering_monroe(election,k,p=0.5,n_jobs=-1,scoring=None):    
     best_committee = None
@@ -881,16 +872,19 @@ def super_geil_algorithm_no_clustering_monroe(election,k,p=0.5,n_jobs=-1,scoring
 
         res += Parallel(n_jobs=n_jobs)(delayed(run_greedy_monroe_noc)(election,k,d,scoring=scoring) for _ in range(5))
 
+
     for (s,cs) in res:
         scores.append(cs)
         if s > best_score_nc:
             best_score_nc = s
 
     scores = np.array(scores)
+    #order = np.argsort(scores)[::-1]
+
+    #bs,bc,ba = results[order[0]]
     bs = np.max(scores)
     same = np.sum(scores == bs)
     return greedy_scores,greedy_scores_cl,bs,same,best_score_nc
-
 
 def run_clustering(election,k,committees,scoring=None):
     best_committee =  None
@@ -912,7 +906,6 @@ def run_clustering(election,k,committees,scoring=None):
 
     return best_committee, best_score, best
 
-
 def run_clustering_monroe(election,k,committees,scores_,scoring=None):
     best_committee =  None
     best_score = 0
@@ -932,12 +925,13 @@ def run_clustering_monroe(election,k,committees,scores_,scoring=None):
 
     return best_committee, best_score, best
 
-
 def greedyCC_d_p(election, k, d, switch = None, p = 1.0, e = 1.0, candidates=None,scoring=None):
+    
     """
         p == 1.0 -> greedy
         p == 0.0 -> random
     """
+    
     n,m = election.shape
     
     assert k <= m, "k has to be smaller than the number of candidates"
@@ -1001,7 +995,6 @@ def greedyCC_d_p(election, k, d, switch = None, p = 1.0, e = 1.0, candidates=Non
     committees = map(lambda x: x[0],partial_committee)
 
     return partial_committee[-1][0], committees
-
 
 def greedy_monroe_d_p(election,k,d,committee=None,scoring=None,p=0.0,e=1.0):
     n,m = election.shape
@@ -1097,6 +1090,12 @@ def greedy_monroe_d_p(election,k,d,committee=None,scoring=None,p=0.0,e=1.0):
             idx_left_[votes_idx] = False
             partial_committee.append((pc[:],r,idx_left_))
 
+    # invert scoring for min cost:
+    
+#     with np.errstate(divide='ignore'):
+#         scoring_inv = 1./scoring
+#         scoring_inv[np.isinf(scoring_inv)] = 1
+    
     scoring_rev = np.max(scoring) - scoring
     
     candidates = np.sort(election[0,:])
@@ -1157,7 +1156,6 @@ def greedy_monroe_d_p(election,k,d,committee=None,scoring=None,p=0.0,e=1.0):
     
     return best_committee, best_score, committees, scores_
 
-
 def add_to_pq_hack(pq,element,threshold,size):
     try: # this is a hack: catches duplicate elements in the queue
         heapq.heappush(pq,element)
@@ -1167,6 +1165,27 @@ def add_to_pq_hack(pq,element,threshold,size):
         pass
     finally:
         return pq[0][0]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def write_cplex_format_OWA(election,k,OWA,out,scoring=None):
@@ -1204,7 +1223,7 @@ def write_cplex_format_OWA(election,k,OWA,out,scoring=None):
     f.write(s+"\n")
     f.write("Subject To\n")
 
-    # constraint for x's
+# constraint for x's
     subj_k = "c1:"
     first = True
     for c in candidates:
@@ -1215,7 +1234,7 @@ def write_cplex_format_OWA(election,k,OWA,out,scoring=None):
         
     f.write(subj_k+' = ' + str(k) + '\n')
 
-    # constraints for y's    
+# constraints for y's    
     pos = 0
     yli = ""
     for z in range(k):
@@ -1258,7 +1277,10 @@ def write_cplex_format_OWA(election,k,OWA,out,scoring=None):
     f.write("End\n")
 
 
+
+
 def run_ilp_OWA(election,k,OWA,scoring=None):
+    
     n,m = election.shape
     
     candidates = np.sort(election[0,:])
@@ -1283,5 +1305,5 @@ def run_ilp_OWA(election,k,OWA,scoring=None):
 
     x = np.array(cpx.solution.get_values()[-m:])
     
-    # Returns cpx.solution.get_objective_value(), candidates[x == 1.0]
+#    return cpx.solution.get_objective_value(), candidates[x == 1.0]
     return cpx.solution.get_objective_value(), candidates[np.logical_and(x > 0.9, x < 1.1)]

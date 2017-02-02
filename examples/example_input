@@ -1,7 +1,7 @@
 candidates               # switch to generating candidates
 gauss 1 0 0.5 125        # generate 125 points with sigma=0.5, 
                          # centered at (1,0)
-uniform -2 -2 1 1 50     # generate 50 points distributed uniformly
+uniform -2 -2 1 1 450     # generate 50 points distributed uniformly
                          # on the square (-2,-2)(1,1)
 voters                   # switch to generating voters
 circle 0 0 2 400         # generate 400 points distributed uniformly

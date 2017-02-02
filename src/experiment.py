@@ -1,29 +1,19 @@
-'''
-Python Multiwinner Package
-
-Performs experiments.
-'''
-
-
 from os import system
 from sys import *
 from random import *
 from subprocess import call
 from PIL import Image
 
-
 C = []
 V = []
-
 
 DATA = "C"
 NAME = "data"
 
 
+# GENERATE POINTS
+
 def generateFromImage( filename, x1, y1, x2, y2, N, Party ):
-  '''
-  Generates points.
-  '''
   img = Image.open(filename)
   rgb_im = img.convert('RGB')
   
@@ -49,27 +39,17 @@ def generateFromImage( filename, x1, y1, x2, y2, N, Party ):
     result.append((density_map[i][0], density_map[i][1], Party))
   return result
 
-
 def generateUniform( x1, y1, x2, y2, N, Party ):
-  '''
-  Generates uniform points.
-  '''
   (x1,x2) = (min(x1,x2),max(x1,x2))
   (y1,y2) = (min(y1,y2),max(y1,y2))
   return [ (random()*(x2-x1)+x1, random()*(y2-y1)+y1, Party) for i in range(N)]
 
 
 def generateGauss( x,y, sigma , N, Party ):
-  '''
-  Generates Gaussian points.
-  '''
   return [ (gauss( x, sigma ), gauss( y, sigma ), Party) for i in range(N)]
 
 
 def generateCircle( x, y, r, N, Party ):
-  '''
-  Generates uniform points on a circle.
-  '''
   count = 0
   L = []
   while( count < N ):
@@ -80,10 +60,10 @@ def generateCircle( x, y, r, N, Party ):
   return L
 
 
+
+# save data
+
 def saveData( name ):
-  '''
-  Saves data.
-  '''
   f = open( name+".in", "w" )
   m = len( C )
   n = len( V )
@@ -97,29 +77,23 @@ def saveData( name ):
   system( "python 2d2pref.py <%s.in >%s.out" % (name, name) )
 
 
+
+# compute winners
+
 def computeWinners( rule, k, output ):
-  '''
-  Computes winners.
-  '''
   global NAME
   system( "python winner.py <%s.out >%s.win %s %d" % (NAME, output, rule, k) )
   system( "python visualize.py %s" % (output) )
 
-
 def getOrNone(l, n):
-  '''
-  Helps getting array elements.
-  '''
   try:
     return l[n]
   except:
     return "NONE"
 
+# COMMAND EXECUTION
 
 def execute( command ):
-  '''
-  Executes commands.
-  '''  
   global DATA
   global NAME
   print command
@@ -152,6 +126,8 @@ def execute( command ):
     computeWinners( command[0], int(command[1]), command[2] )
 
 
+
+# READ DATA IN
 def readData( f ):
   cmd = []
   lines = f.readlines()
@@ -164,18 +140,31 @@ def readData( f ):
   return cmd
 
 
-'''
-Main.
-'''
 
 
-seed()
+# MAIN
 
-data_in  = stdin
-data_out = stdout
+if __name__ == "__main__":
 
-cmd = readData( data_in )
 
-for command in cmd:
-  if not command[0].lstrip()[0] == '#':
-    execute( command )
+  if( len(argv) > 1 ):
+    print "This scripts runs a single experiment (generates an elections, \ncomputes the results accoring to specified rules, and prepares visualizations)"
+    print
+    print "Invocation:"
+    print "  python experiment.py  <description.input"
+    exit()
+
+
+  seed()
+
+
+  data_in  = stdin
+  data_out = stdout
+
+  cmd = readData( data_in )
+
+  for command in cmd:
+    if not command[0].lstrip()[0] == '#':
+      execute( command )
+
+

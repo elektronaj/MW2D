@@ -1,0 +1,11 @@
+candidates
+gauss 0 0 0.5 100
+voters
+gauss 0 0 0.5 100
+generate kborda-cm
+kborda 10 kb10
+kborda 20 kb20
+kborda 30 kb30
+kborda 40 kb40
+kborda 50 kb50
+
