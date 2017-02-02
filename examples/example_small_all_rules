@@ -1,0 +1,23 @@
+candidates               # switch to generating candidates
+gauss 1 0 0.5 30        # generate 125 points with sigma=0.5, 
+                         # centered at (1,0)
+uniform -2 -2 1 1 30     # generate 50 points distributed uniformly
+                         # on the square (-2,-2)(1,1)
+voters                   # switch to generating voters
+circle 0 0 2 30         # generate 400 points distributed uniformly
+                         # on a disc centered at (0,0) with radius 2
+generate input-data      # save the generated points to file input-data.in
+                         # generate preference-based election and save
+                         # it to file input-data.out
+stv 20 input-stv
+greedyCC 20 input-greedyCC  
+greedyMonroe 20 input-greedyMonroe
+algoP 20 input-algoP
+rangingCC 20 input-rrrCC
+ccILP 20 input-ccILP
+PAV 20 input-PAV       
+PAVtopk 20 input-PAVtopkkk   
+monroeILP 20 input-mILP
+bloc 20 input-bloc      
+kborda 20 input-kborda    
+sntv 20 input-sntv      
