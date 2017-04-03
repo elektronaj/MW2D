@@ -1,0 +1,5 @@
+candidates               
+gauss 1 1 0.5 4
+voters                  
+circle 1 1 1 5 
+generate input-small
